@@ -1,0 +1,79 @@
+# 新增用例模板 —— 复制这一段到 mcp-test-suite.yaml 的 cases: 下面
+#
+# 三条硬规则（loader 会在加载期检查，违反就退出码 2）：
+#   1. 三件套齐全：goal（为什么测）/ action（怎么触发）/ expect（怎么判定）
+#   2. expect 只能用 README 里列的那 12 个键，拼错会报「未知断言键」
+#   3. id 全局唯一，且只用小写字母/数字/连字符/下划线
+#
+# 一条用例只能有一个 json_path：要断言两个字段就写两条用例
+# （这是 schema 的刻意约束 —— 一条用例只证明一件事，失败时不用再拆）。
+
+- id: replace-me-001
+  title: 一句话说明这条验证什么（会直接出现在报告里）
+  layer: guard            # liveness | auth | guard | domain | governance | admin
+  priority: P0            # P0 上线必过 / P1 重要 / P2 一般
+  # goal 写「为什么这条值得测」：出过什么问题、谁会踩、不测会怎样。
+  # 不要复述操作 —— 「查一下 SELECT 1」不是理由。
+  goal: |
+    这里写动机。好的写法是带上真实事故形态或代价，例如：
+    「单条 SLEEP 可占住数据库连接 30 秒，且 MySQL 打断 SLEEP 时返回 1 而不是报错，
+      曾导致被中断的查询以成功返回。」—— 读过的人能判断这条该不该是 P0。
+  # 可选：真实事故/工单编号，报告里会有一张「回归项映射」表
+  regression: MCP-00
+  # 可选：人读的前置条件（会在文档的「操作」列里出现）
+  given:
+    datasource: <datasource-name>
+    customer_id: "<tenant-id>"
+  action:
+    kind: tool            # tool | http
+    tool: query
+    arguments:
+      datasource: <datasource-name>
+      customer_id: "<tenant-id>"
+      sql: "SELECT SLEEP(1)"
+  expect:
+    is_error: true
+    error_type: SQL_NOT_ALLOWED
+    max_elapsed_ms: 2000
+  # 可选：验收结论（人读的一句话）
+  metric: "拒绝率 100%；P95 响应 < 2s"
+
+# ---------------------------------------------------------------------------
+# http 动作（/health、/ready、/admin/v1/*）：
+#
+# - id: replace-me-002
+#   title: /ready 就绪探针 200 且 status=ready
+#   layer: liveness
+#   priority: P0
+#   goal: |
+#     /health 刻意不碰下游，所以下游挂掉时它仍然是 ok。/ready 才是可用性信号。
+#   action:
+#     kind: http
+#     method: GET
+#     path: /ready
+#   expect:
+#     status: 200
+#     json_path: status
+#     json_equals: ready
+#
+# http 动作的鉴权默认按路径推断：/admin/** → 管理令牌，/mcp → 业务令牌，其它 → 不带。
+# 要测「没带令牌必须 401」，显式写 auth: none。
+#
+# 需要 POST JSON-RPC（如 tools/list）时用 body：
+#   action:
+#     kind: http
+#     method: POST
+#     path: /mcp
+#     body:
+#       jsonrpc: "2.0"
+#       id: 11
+#       method: tools/list
+#       params: {}
+#   expect:
+#     status: 200
+#     json_path: result.tools
+#     json_len: 4
+#
+# 还没确认的用例：加一行 status: todo，goal 里写「待补：需要确认 X」。
+# todo 不执行、不计入通过率，但会出现在报告的「待补」段里 —— 这样「没测」不会被
+# 误读成「没问题」。
