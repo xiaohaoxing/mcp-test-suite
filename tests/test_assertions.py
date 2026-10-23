@@ -173,10 +173,12 @@ class TextTest(unittest.TestCase):
         self.assertIn("hello world", str(r.actual))
 
     def test_not_contains_pass(self):
-        self.assertTrue(one({"not_contains": "sk-secret-"}, obs_tool()).ok)
+        self.assertTrue(one({"not_contains": "sk-secret-"}, obs_tool(text="token clean leaked")).ok)
 
     def test_not_contains_fail(self):
-        r = one({"not_contains": "sk-secret-"}, obs_tool(text="token sk-secret leaked"))
+        # 文本里必须**真的含有**那个 needle，否则 not_contains 会正确地判"通过"，
+        # 用例就变成永远绿的空断言（我改夹具时把尾部连字符改丢了，正是这么红的）。
+        r = one({"not_contains": "sk-secret-"}, obs_tool(text="token sk-secret-abc leaked"))
         self.assertFalse(r.ok)
         self.assertIn("sk-secret-", str(r.expected))
 
