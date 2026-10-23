@@ -227,8 +227,8 @@ class LoaderHelpersTest(unittest.TestCase):
     def test_mask_token_shows_only_prefix(self):
         masked = mask_token("sk-demo-0123456789abcdef0123456789abcdef")
         self.assertTrue(masked.startswith("sk-demo-"))
-        self.assertNotIn("563d05f3", masked)
-        self.assertIn("len 52", masked)
+        self.assertNotIn("0123456789abcdef", masked)
+        self.assertIn("len 40", masked)
         self.assertEqual(mask_token(None), "<未设置>")
 
     def test_parse_plain_token(self):

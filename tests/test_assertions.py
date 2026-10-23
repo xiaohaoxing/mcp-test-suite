@@ -173,12 +173,12 @@ class TextTest(unittest.TestCase):
         self.assertIn("hello world", str(r.actual))
 
     def test_not_contains_pass(self):
-        self.assertTrue(one({"not_contains": "sk-db-"}, obs_tool()).ok)
+        self.assertTrue(one({"not_contains": "sk-secret-"}, obs_tool()).ok)
 
     def test_not_contains_fail(self):
         r = one({"not_contains": "sk-secret-"}, obs_tool(text="token sk-secret leaked"))
         self.assertFalse(r.ok)
-        self.assertIn("sk-db-", str(r.expected))
+        self.assertIn("sk-secret-", str(r.expected))
 
 
 class ElapsedTest(unittest.TestCase):
