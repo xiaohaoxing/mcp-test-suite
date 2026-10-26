@@ -35,7 +35,9 @@ LAYER_NOTES: Dict[str, str] = {
     "admin": "管理面（配置 / 组 / 令牌 / 观测）",
 }
 
-PRIORITIES: Tuple[str, ...] = ("P0", "P1", "P2")
+#: P3 是"已知但可延后"的一档：它出现在真实的问题清单里（如外部验收报告的
+#: 边界项），不能用 P2 冒充 —— 那会让"严重程度"这一列失去可信度。
+PRIORITIES: Tuple[str, ...] = ("P0", "P1", "P2", "P3")
 CASE_STATUSES: Tuple[str, ...] = ("active", "todo", "skip")
 ACTION_KINDS: Tuple[str, ...] = ("tool", "http")
 HTTP_METHODS: Tuple[str, ...] = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
